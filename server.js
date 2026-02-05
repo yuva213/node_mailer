@@ -2,27 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
-const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
+// Configure multer to use memory storage (works on all platforms)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Create transporter
 const transporter = nodemailer.createTransport({
@@ -44,10 +29,12 @@ app.post('/send-email', upload.array('attachments', 5), async (req, res) => {
         const { to, cc, bcc, subject, emailType, message, htmlMessage } = req.body;
         const files = req.files || [];
 
-        // Build attachments array
+        console.log('Received email request:', { to, subject, emailType, fileCount: files.length });
+
+        // Build attachments array from memory
         const attachments = files.map(file => ({
             filename: file.originalname,
-            path: file.path
+            content: file.buffer
         }));
 
         // Build email options
@@ -75,11 +62,7 @@ app.post('/send-email', upload.array('attachments', 5), async (req, res) => {
 
         // Send email
         const info = await transporter.sendMail(mailOptions);
-
-        // Clean up uploaded files
-        files.forEach(file => {
-            fs.unlink(file.path, () => {});
-        });
+        console.log('Email sent successfully:', info.messageId);
 
         res.json({
             success: true,
@@ -99,11 +82,19 @@ app.post('/send-email', upload.array('attachments', 5), async (req, res) => {
 // Verify configuration endpoint
 app.get('/verify', async (req, res) => {
     try {
+        console.log('Verifying SMTP configuration...');
         await transporter.verify();
+        console.log('SMTP verification successful');
         res.json({ success: true, message: 'SMTP configuration is valid!' });
     } catch (error) {
+        console.error('SMTP verification failed:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
+});
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
 });
 
 app.listen(PORT, () => {
