@@ -33,8 +33,8 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Serve static files
-app.use(express.static('public'));
+// Serve static files from current directory
+app.use(express.static(__dirname));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

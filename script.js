@@ -127,7 +127,7 @@ emailForm.addEventListener('submit', async (e) => {
     });
 
     try {
-        const response = await fetch('/api/send-email', {
+        const response = await fetch('/send-email', {
             method: 'POST',
             body: formData
         });
@@ -161,7 +161,7 @@ verifyBtn.addEventListener('click', async () => {
     verifyBtn.disabled = true;
 
     try {
-        const response = await fetch('/api/verify');
+        const response = await fetch('/verify');
         const result = await response.json();
 
         if (result.success) {
