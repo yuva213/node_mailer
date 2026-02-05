@@ -6,7 +6,8 @@
       "Bash(if not exist \"C:\\\\Users\\\\yuvar\\\\Desktop\\\\web_hoster\\\\learning_path\\\\node_mailer\\\\api\" mkdir \"C:\\\\Users\\\\yuvar\\\\Desktop\\\\web_hoster\\\\learning_path\\\\node_mailer\\\\api\")",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git remote get-url:*)"
     ]
   }
 }
