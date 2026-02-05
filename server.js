@@ -9,20 +9,25 @@ const PORT = process.env.PORT || 3000;
 // Configure multer to use memory storage (works on all platforms)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Create transporter
+// Create transporter with IPv4 fallback
 const transporter = nodemailer.createTransport({
-    // Try explicit SMTP config first (more reliable)
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false, // true for 465, false for other ports
+    port: parseInt(process.env.EMAIL_PORT) || 465,
+    secure: true, // use SSL
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD
     },
-    // Fallback to service name if host/port not set
-    ...(process.env.EMAIL_SERVICE && !process.env.EMAIL_HOST ? {
-        service: process.env.EMAIL_SERVICE
-    } : {})
+    // Force IPv4 and add connection options
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
+    tls: {
+        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2'
+    },
+    // Disable IPv6
+    localhost: 'localhost'
 });
 
 // Serve static files from current directory
