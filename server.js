@@ -11,11 +11,18 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Create transporter
 const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
+    // Try explicit SMTP config first (more reliable)
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD
-    }
+    },
+    // Fallback to service name if host/port not set
+    ...(process.env.EMAIL_SERVICE && !process.env.EMAIL_HOST ? {
+        service: process.env.EMAIL_SERVICE
+    } : {})
 });
 
 // Serve static files from current directory
